@@ -1,27 +1,7 @@
-import {
-  Coffee,
-  Dices,
-  Footprints,
-  Music,
-  Palette,
-  UtensilsCrossed,
-} from "lucide-react";
-import type { ComponentType } from "react";
+import Image from "next/image";
 import { Reveal } from "@/components/reveal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { gatherings } from "@/lib/content";
-
-const icons: Record<
-  (typeof gatherings)[number]["icon"],
-  ComponentType<{ className?: string }>
-> = {
-  table: UtensilsCrossed,
-  games: Dices,
-  walk: Footprints,
-  coffee: Coffee,
-  music: Music,
-  make: Palette,
-};
 
 export function Gatherings() {
   return (
@@ -35,34 +15,40 @@ export function Gatherings() {
             Gatherings
           </p>
           <h2 className="mt-3 max-w-2xl font-heading text-4xl tracking-tight text-balance sm:text-5xl">
-            Different nights. Same reason to come.
+            Choose your way{" "}
+            <span className="text-primary font-semibold text-6xl">
+              TO CONNECT
+            </span>
           </h2>
           <p className="mt-4 max-w-xl text-lg text-pretty text-muted-foreground">
             The lineup changes with the week. What’s on next lives on Instagram,
             and it usually feels like one of these.
           </p>
         </Reveal>
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {gatherings.map((item, index) => {
-            const Icon = icons[item.icon];
             return (
               <Reveal key={item.title} delay={index * 0.05} className="h-full">
-                <Card className="h-full rounded-3xl bg-card transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_-28px_rgba(60,32,16,0.7)]">
-                  <CardHeader>
-                    <div
-                      className={`mb-2 grid size-11 place-items-center rounded-2xl ${item.tone}`}
-                    >
-                      <Icon className="size-5" />
+                <Card className="h-full rounded-lg bg-card transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_-28px_rgba(60,32,16,0.7)]">
+                  <CardContent>
+                    <div className="flex items-center justify-center">
+                      <Image
+                        src={item.image}
+                        alt={item.title}
+                        width={500}
+                        height={100}
+                        className="rounded-lg"
+                      />
                     </div>
-                    <CardTitle className="font-heading text-2xl">
+                  </CardContent>
+                  <CardHeader className="flex flex-col items-center justify-center">
+                    <CardTitle className="font-heading text-2xl text-center">
                       {item.title}
+                      <p className="text-sm leading-relaxed text-muted-foreground">
+                        {item.body}
+                      </p>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-base leading-relaxed text-muted-foreground">
-                      {item.body}
-                    </p>
-                  </CardContent>
                 </Card>
               </Reveal>
             );

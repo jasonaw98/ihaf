@@ -28,40 +28,25 @@ export const stats = [
 
 export const gatherings = [
   {
-    icon: "table",
-    title: "Long tables",
-    body: "Dinner with the seats shuffled. You learn someone’s name before you learn what they do.",
+    icon: "volleyball",
+    title: "IHAF SPORT",
+    body: "Pickleball, Badminton, Running, Hiking, Bouldering & More.",
     tone: "bg-butter text-ink",
+    image: "/sport.png",
+  },
+  {
+    icon: "martini",
+    title: "IHAF DRINKS",
+    body: "Social Drinks, Themed Parties, Wine Tasting & More.",
+    tone: "bg-blush text-ink",
+    image: "/drinks.png",
   },
   {
     icon: "games",
-    title: "Game nights",
-    body: "Cards, boards, and just enough competition to skip the weather talk.",
+    title: "IHAF PLAY",
+    body: "Board Games, Escape Rooms, Movie Nights, Book Clubs, Camping, Outdoor Activities, Foodie Activities & More.",
     tone: "bg-sage text-ink",
-  },
-  {
-    icon: "walk",
-    title: "City walks",
-    body: "A loose route through KL and a hard stop for drinks. Moving makes the first hello easier.",
-    tone: "bg-blush text-ink",
-  },
-  {
-    icon: "coffee",
-    title: "Kopitiam mornings",
-    body: "Slow coffee, an open chair, and nowhere you have to be for a while.",
-    tone: "bg-accent text-accent-foreground",
-  },
-  {
-    icon: "music",
-    title: "Night-out crews",
-    body: "Karaoke, rooftops. Arrive alone. Leave in a group chat.",
-    tone: "bg-secondary text-secondary-foreground",
-  },
-  {
-    icon: "make",
-    title: "Make-something days",
-    body: "Workshops where your hands stay busy, so the conversation can take its time.",
-    tone: "bg-primary/12 text-primary",
+    image: "/play.png",
   },
 ] as const;
 

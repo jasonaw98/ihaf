@@ -1,12 +1,13 @@
 "use client";
 
 import { cn } from "cn";
-import { Check, Copy, UserX } from "lucide-react";
+import { Check, Copy, Phone, UserX } from "lucide-react";
 import { useState, useTransition } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { removeAttendee, setAttendance } from "@/lib/actions/admin";
 import type { AdminAttendee } from "@/lib/admin";
+import { formatPhone, whatsappLink } from "@/lib/phone";
 
 const rsvpFormat = new Intl.DateTimeFormat("en-MY", {
   timeZone: "Asia/Kuala_Lumpur",
@@ -27,10 +28,11 @@ export function AttendeeList({
 }) {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"emails" | "phones" | null>(null);
   const [, startTransition] = useTransition();
 
   const emails = attendees.map((person) => person.email).filter(Boolean);
+  const phones = attendees.map((person) => person.phone).filter(Boolean);
   const attendedCount = attendees.filter((person) => person.attended_at).length;
 
   function run(attendeeId: string, action: () => Promise<{ error?: string }>) {
@@ -43,10 +45,12 @@ export function AttendeeList({
     });
   }
 
-  async function copyEmails() {
-    await navigator.clipboard.writeText(emails.join(", "));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  async function copy(kind: "emails" | "phones") {
+    await navigator.clipboard.writeText(
+      (kind === "emails" ? emails : phones).join(", "),
+    );
+    setCopied(kind);
+    setTimeout(() => setCopied(null), 2000);
   }
 
   if (attendees.length === 0) {
@@ -64,21 +68,26 @@ export function AttendeeList({
           {attendees.length} going
           {started ? ` · ${attendedCount} marked as attended` : ""}
         </p>
-        {emails.length > 0 ? (
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-full"
-            onClick={copyEmails}
-          >
-            {copied ? (
-              <Check data-icon="inline-start" />
-            ) : (
-              <Copy data-icon="inline-start" />
-            )}
-            {copied ? "Copied" : "Copy emails"}
-          </Button>
-        ) : null}
+        <div className="flex flex-wrap gap-2">
+          {(["emails", "phones"] as const).map((kind) =>
+            (kind === "emails" ? emails : phones).length > 0 ? (
+              <Button
+                key={kind}
+                variant="outline"
+                size="sm"
+                className="rounded-full"
+                onClick={() => copy(kind)}
+              >
+                {copied === kind ? (
+                  <Check data-icon="inline-start" />
+                ) : (
+                  <Copy data-icon="inline-start" />
+                )}
+                {copied === kind ? "Copied" : `Copy ${kind}`}
+              </Button>
+            ) : null,
+          )}
+        </div>
       </div>
       {error ? (
         <p role="alert" className="mt-3 text-sm text-destructive">
@@ -118,6 +127,29 @@ export function AttendeeList({
                 <p className="truncate text-sm text-muted-foreground">
                   {[person.email, person.location].filter(Boolean).join(" · ")}
                 </p>
+                {person.phone ? (
+                  <p className="flex flex-wrap items-center gap-x-3 text-sm">
+                    <a
+                      href={`tel:${person.phone}`}
+                      className="inline-flex items-center gap-1 font-medium underline-offset-4 hover:underline"
+                    >
+                      <Phone className="size-3.5" />
+                      {formatPhone(person.phone)}
+                    </a>
+                    <a
+                      href={whatsappLink(person.phone)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-secondary-foreground underline-offset-4 hover:underline"
+                    >
+                      WhatsApp
+                    </a>
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No phone number
+                  </p>
+                )}
                 {person.rsvped_at ? (
                   <p className="text-xs text-muted-foreground">
                     RSVP’d {rsvpFormat.format(new Date(person.rsvped_at))}

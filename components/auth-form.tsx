@@ -147,6 +147,7 @@ export function AuthForm({
                     name="full_name"
                     autoComplete="name"
                     placeholder="What friends call you"
+                    defaultValue={state.fullName}
                     required
                     maxLength={80}
                     className="h-12 rounded-xl bg-card px-4"
@@ -164,6 +165,26 @@ export function AuthForm({
                   className="h-12 rounded-xl bg-card px-4"
                 />
               </Field>
+              {mode === "signup" ? (
+                <Field label="Phone number" htmlFor="phone">
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    autoComplete="tel"
+                    inputMode="tel"
+                    placeholder="012-345 6789"
+                    defaultValue={state.phone}
+                    required
+                    aria-describedby="phone-hint"
+                    className="h-12 rounded-xl bg-card px-4"
+                  />
+                  <p id="phone-hint" className="text-xs text-muted-foreground">
+                    Only organisers see this, so they can reach you about
+                    events.
+                  </p>
+                </Field>
+              ) : null}
               <Field label="Password" htmlFor="password">
                 <Input
                   id="password"

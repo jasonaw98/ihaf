@@ -73,6 +73,26 @@ export function ProfileForm({
           </div>
         </Field>
         <Field
+          id="phone"
+          label="Phone number"
+          hint="Only organisers see this, for event updates"
+          error={errors.phone}
+        >
+          <Input
+            id="phone"
+            name="phone"
+            type="tel"
+            autoComplete="tel"
+            inputMode="tel"
+            placeholder="012-345 6789"
+            defaultValue={values.phone}
+            required
+            aria-invalid={Boolean(errors.phone)}
+            aria-describedby={errors.phone ? "phone-error" : "phone-hint"}
+            className="h-11 rounded-xl px-4"
+          />
+        </Field>
+        <Field
           id="location"
           label="Where in KL?"
           hint="Optional"

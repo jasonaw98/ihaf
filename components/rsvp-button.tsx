@@ -4,6 +4,8 @@ import { Check } from "lucide-react";
 import Link from "next/link";
 import { useActionState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { type RsvpState, toggleRsvp } from "@/lib/actions/events";
 
 export function RsvpButton({
@@ -12,12 +14,14 @@ export function RsvpButton({
   isGoing,
   isFull,
   hasStarted,
+  needsPhone,
 }: {
   eventId: string;
   signedIn: boolean;
   isGoing: boolean;
   isFull: boolean;
   hasStarted: boolean;
+  needsPhone: boolean;
 }) {
   const [state, formAction, pending] = useActionState<RsvpState, FormData>(
     toggleRsvp,
@@ -82,20 +86,42 @@ export function RsvpButton({
           </Button>
         </>
       ) : (
-        <Button
-          type="submit"
-          name="intent"
-          value="join"
-          size="lg"
-          disabled={pending || isFull}
-          className="h-12 w-full rounded-full text-base"
-        >
-          {isFull
-            ? "This one’s full"
-            : pending
-              ? "Saving your seat…"
-              : "Save my seat"}
-        </Button>
+        <>
+          {needsPhone && !isFull ? (
+            <div className="space-y-2">
+              <Label htmlFor="rsvp-phone">Your phone number</Label>
+              <Input
+                id="rsvp-phone"
+                name="phone"
+                type="tel"
+                autoComplete="tel"
+                inputMode="tel"
+                placeholder="012-345 6789"
+                required
+                aria-describedby="rsvp-phone-hint"
+                className="h-11 rounded-xl px-4"
+              />
+              <p id="rsvp-phone-hint" className="text-xs text-muted-foreground">
+                So organisers can reach you about this event. Saved to your
+                profile.
+              </p>
+            </div>
+          ) : null}
+          <Button
+            type="submit"
+            name="intent"
+            value="join"
+            size="lg"
+            disabled={pending || isFull}
+            className="h-12 w-full rounded-full text-base"
+          >
+            {isFull
+              ? "This one’s full"
+              : pending
+                ? "Saving your seat…"
+                : "Save my seat"}
+          </Button>
+        </>
       )}
       {state.error ? (
         <p role="alert" className="text-center text-sm text-destructive">

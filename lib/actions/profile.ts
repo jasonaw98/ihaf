@@ -2,11 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { dayKey } from "@/lib/dates";
+import { normalizePhone, PHONE_ERROR } from "@/lib/phone";
 import { createClient } from "@/lib/supabase/server";
 
 export type ProfileField =
   | "full_name"
   | "username"
+  | "phone"
   | "location"
   | "date_of_birth"
   | "bio";
@@ -35,6 +37,7 @@ export async function updateProfile(
 
   const fullName = optional(formData.get("full_name"));
   const username = optional(formData.get("username"))?.toLowerCase() ?? null;
+  const phone = normalizePhone(optional(formData.get("phone")));
   const location = optional(formData.get("location"));
   const dateOfBirth = optional(formData.get("date_of_birth"));
   const bio = optional(formData.get("bio"));
@@ -46,6 +49,7 @@ export async function updateProfile(
   if (username && !/^[a-z0-9_]{3,24}$/.test(username)) {
     fieldErrors.username = "3–24 characters: letters, numbers, or underscores.";
   }
+  if (!phone) fieldErrors.phone = PHONE_ERROR;
   if (location && location.length > 80)
     fieldErrors.location = "Keep it under 80 characters.";
   if (bio && bio.length > 280)
@@ -72,6 +76,7 @@ export async function updateProfile(
     .update({
       full_name: fullName,
       username,
+      phone,
       location,
       date_of_birth: dateOfBirth,
       bio,

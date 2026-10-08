@@ -110,6 +110,16 @@ export async function getMyEvents(userId: string) {
   return withAttendance(events, userId);
 }
 
+export async function hasPhone(userId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profiles")
+    .select("phone")
+    .eq("id", userId)
+    .maybeSingle();
+  return Boolean(data?.phone);
+}
+
 export function spotsLeft(
   event: Pick<EventSummary, "capacity" | "attendeeCount">,
 ) {

@@ -7,7 +7,13 @@ import { RsvpButton } from "@/components/rsvp-button";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { formatLongDate, formatTimeRange } from "@/lib/dates";
-import { getCurrentUser, getEvent, hasStarted, spotsLeft } from "@/lib/events";
+import {
+  getCurrentUser,
+  getEvent,
+  hasPhone,
+  hasStarted,
+  spotsLeft,
+} from "@/lib/events";
 
 export async function generateMetadata({
   params,
@@ -26,7 +32,10 @@ export async function generateMetadata({
 export default async function EventPage({ params }: PageProps<"/events/[id]">) {
   const { id } = await params;
   const user = await getCurrentUser();
-  const event = await getEvent(id, user?.id);
+  const [event, userHasPhone] = await Promise.all([
+    getEvent(id, user?.id),
+    user ? hasPhone(user.id) : false,
+  ]);
   if (!event) notFound();
 
   const left = spotsLeft(event);
@@ -119,6 +128,7 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
                   isGoing={event.isGoing}
                   isFull={left === 0}
                   hasStarted={started}
+                  needsPhone={Boolean(user) && !userHasPhone}
                 />
               </div>
             </aside>

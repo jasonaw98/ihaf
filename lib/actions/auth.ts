@@ -2,6 +2,7 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { normalizePhone, PHONE_ERROR } from "@/lib/phone";
 import { safeNext } from "@/lib/redirect";
 import { createClient } from "@/lib/supabase/server";
 
@@ -9,6 +10,8 @@ export type AuthState = {
   status: "idle" | "error" | "check-email";
   message?: string;
   email?: string;
+  fullName?: string;
+  phone?: string;
 };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -30,31 +33,24 @@ export async function signUp(
   const email = String(formData.get("email") ?? "")
     .trim()
     .toLowerCase();
+  const phoneInput = String(formData.get("phone") ?? "").trim();
+  const phone = normalizePhone(phoneInput);
   const password = String(formData.get("password") ?? "");
   const next = safeNext(formData.get("next"));
+  const fail = (message: string): AuthState => ({
+    status: "error",
+    message,
+    email,
+    fullName,
+    phone: phoneInput,
+  });
 
-  if (!fullName)
-    return { status: "error", message: "Tell us what to call you.", email };
-  if (fullName.length > 80) {
-    return {
-      status: "error",
-      message: "Keep your name under 80 characters.",
-      email,
-    };
-  }
-  if (!EMAIL_PATTERN.test(email)) {
-    return {
-      status: "error",
-      message: "That email doesn’t look right.",
-      email,
-    };
-  }
+  if (!fullName) return fail("Tell us what to call you.");
+  if (fullName.length > 80) return fail("Keep your name under 80 characters.");
+  if (!EMAIL_PATTERN.test(email)) return fail("That email doesn’t look right.");
+  if (!phone) return fail(PHONE_ERROR);
   if (password.length < 8) {
-    return {
-      status: "error",
-      message: "Use at least 8 characters for your password.",
-      email,
-    };
+    return fail("Use at least 8 characters for your password.");
   }
 
   const supabase = await createClient();
@@ -62,12 +58,12 @@ export async function signUp(
     email,
     password,
     options: {
-      data: { full_name: fullName },
+      data: { full_name: fullName, phone_number: phone },
       emailRedirectTo: `${await siteOrigin()}/auth/callback?next=${encodeURIComponent(next)}`,
     },
   });
 
-  if (error) return { status: "error", message: error.message, email };
+  if (error) return fail(error.message);
   if (data.session) redirect(next);
   return { status: "check-email", email };
 }

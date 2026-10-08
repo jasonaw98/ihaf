@@ -11,6 +11,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { signOut } from "@/lib/actions/auth";
 import { dayKey } from "@/lib/dates";
 import { getMyEvents, hasStarted } from "@/lib/events";
+import { formatPhone } from "@/lib/phone";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -45,7 +46,7 @@ export default async function ProfilePage() {
     supabase
       .from("profiles")
       .select(
-        "full_name, username, avatar_url, bio, date_of_birth, location, created_at",
+        "full_name, username, phone, avatar_url, bio, date_of_birth, location, created_at",
       )
       .eq("id", user.id)
       .maybeSingle(),
@@ -108,12 +109,19 @@ export default async function ProfilePage() {
                 Signed in as {user.email}. This helps hosts seat you with people
                 you’ll click with.
               </p>
+              {profile?.phone ? null : (
+                <p className="mt-4 rounded-xl bg-butter/50 px-4 py-3 text-sm text-ink">
+                  Add your phone number so organisers can reach you. You’ll need
+                  it to save a seat.
+                </p>
+              )}
               <div className="mt-6">
                 <ProfileForm
                   today={dayKey(new Date())}
                   values={{
                     full_name: profile?.full_name ?? "",
                     username: profile?.username ?? "",
+                    phone: profile?.phone ? formatPhone(profile.phone) : "",
                     location: profile?.location ?? "",
                     date_of_birth: profile?.date_of_birth ?? "",
                     bio: profile?.bio ?? "",

@@ -100,6 +100,7 @@ export type Database = {
           id: string;
           is_admin: boolean | null;
           location: string | null;
+          phone: string | null;
           updated_at: string | null;
           username: string | null;
         };
@@ -112,6 +113,7 @@ export type Database = {
           id: string;
           is_admin?: boolean | null;
           location?: string | null;
+          phone?: string | null;
           updated_at?: string | null;
           username?: string | null;
         };
@@ -124,6 +126,7 @@ export type Database = {
           id?: string;
           is_admin?: boolean | null;
           location?: string | null;
+          phone?: string | null;
           updated_at?: string | null;
           username?: string | null;
         };
@@ -142,6 +145,7 @@ export type Database = {
           full_name: string | null;
           username: string | null;
           email: string | null;
+          phone: string | null;
           avatar_url: string | null;
           location: string | null;
           rsvped_at: string | null;

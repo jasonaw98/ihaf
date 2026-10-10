@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { DateBlock } from "@/components/event-card";
+import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { getAdminOverview } from "@/lib/admin";
 import { formatTimeRange } from "@/lib/dates";
@@ -71,7 +72,7 @@ function EventTable({
   emptyText,
 }: {
   title: string;
-  events: EventSummary[];
+  events: (EventSummary & { confirmedCount?: number })[];
   emptyText: string;
 }) {
   return (
@@ -100,6 +101,20 @@ function EventTable({
                       .filter(Boolean)
                       .join(" · ")}
                   </p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {event.category ? null : (
+                      <Badge variant="outline">No category</Badge>
+                    )}
+                    {event.confirmedCount === undefined ||
+                    event.attendeeCount === 0 ? null : event.confirmedCount ===
+                      0 ? (
+                      <Badge>Confirm attendance</Badge>
+                    ) : (
+                      <Badge variant="secondary">
+                        {event.confirmedCount}/{event.attendeeCount} attended
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 <div className="text-right">
                   <p className="font-heading text-2xl leading-none">

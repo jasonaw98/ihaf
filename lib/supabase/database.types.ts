@@ -54,6 +54,7 @@ export type Database = {
       events: {
         Row: {
           capacity: number | null;
+          category: string | null;
           cover_image_url: string | null;
           created_at: string | null;
           description: string | null;
@@ -66,6 +67,7 @@ export type Database = {
         };
         Insert: {
           capacity?: number | null;
+          category?: string | null;
           cover_image_url?: string | null;
           created_at?: string | null;
           description?: string | null;
@@ -78,6 +80,7 @@ export type Database = {
         };
         Update: {
           capacity?: number | null;
+          category?: string | null;
           cover_image_url?: string | null;
           created_at?: string | null;
           description?: string | null;

@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "cn";
 import { Check } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useActionState } from "react";
@@ -12,11 +13,13 @@ import {
   type EventFormState,
   saveEvent,
 } from "@/lib/actions/admin";
+import { gatherings } from "@/lib/content";
 
 export type EventFormValues = Record<EventField, string>;
 
 const empty: EventFormValues = {
   title: "",
+  category: "",
   description: "",
   location: "",
   starts_at: "",
@@ -64,6 +67,44 @@ export function EventForm({
           className="h-11 rounded-xl px-4"
         />
       </Field>
+
+      <fieldset
+        className="space-y-2"
+        aria-describedby={errors.category ? "category-error" : "category-hint"}
+      >
+        <legend className="text-sm font-medium">Category</legend>
+        <div className="flex flex-wrap gap-2 pt-2">
+          {gatherings.map((item) => (
+            <label
+              key={item.key}
+              className={cn(
+                "cursor-pointer rounded-full px-4 py-2 text-sm font-medium ring-1 ring-foreground/15 transition",
+                "has-checked:ring-2 has-checked:ring-foreground has-focus-visible:outline-2 has-focus-visible:outline-ring",
+                item.tone,
+              )}
+            >
+              <input
+                type="radio"
+                name="category"
+                value={item.key}
+                defaultChecked={values.category === item.key}
+                required
+                className="sr-only"
+              />
+              {item.title}
+            </label>
+          ))}
+        </div>
+        {errors.category ? (
+          <p id="category-error" className="text-sm text-destructive">
+            {errors.category}
+          </p>
+        ) : (
+          <p id="category-hint" className="text-xs text-muted-foreground">
+            Counts towards members’ tier in this category.
+          </p>
+        )}
+      </fieldset>
 
       <div className="grid gap-5 sm:grid-cols-2">
         <Field

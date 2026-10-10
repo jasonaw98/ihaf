@@ -6,6 +6,7 @@ import { EventCard } from "@/components/event-card";
 import { ProfileForm } from "@/components/profile-form";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { TierCards } from "@/components/tier-cards";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { signOut } from "@/lib/actions/auth";
@@ -13,6 +14,7 @@ import { dayKey } from "@/lib/dates";
 import { getMyEvents, hasStarted } from "@/lib/events";
 import { formatPhone } from "@/lib/phone";
 import { createClient } from "@/lib/supabase/server";
+import { tiersFromAttendance } from "@/lib/tiers";
 
 export const metadata: Metadata = {
   title: "Your profile — IHAF",
@@ -94,6 +96,23 @@ export default async function ProfilePage() {
             </form>
           </header>
 
+          <section aria-labelledby="tiers-heading" className="mt-12">
+            <div className="flex flex-wrap items-end justify-between gap-2">
+              <h2
+                id="tiers-heading"
+                className="font-heading text-2xl tracking-tight"
+              >
+                Your tiers
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Each event counts once your host confirms you were there.
+              </p>
+            </div>
+            <div className="mt-5">
+              <TierCards tiers={tiersFromAttendance(myEvents)} />
+            </div>
+          </section>
+
           <div className="mt-12 grid items-start gap-10 lg:grid-cols-[1.1fr_1fr]">
             <section
               aria-labelledby="details-heading"
@@ -173,7 +192,12 @@ export default async function ProfilePage() {
                   <ul className="mt-4 space-y-3 opacity-80">
                     {past.map((event) => (
                       <li key={event.id}>
-                        <EventCard event={event} />
+                        <EventCard
+                          event={event}
+                          attendance={
+                            event.attendedAt ? "confirmed" : "pending"
+                          }
+                        />
                       </li>
                     ))}
                   </ul>

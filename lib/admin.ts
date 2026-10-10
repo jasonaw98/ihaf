@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { eventColumns, withAttendance } from "@/lib/events";
 import { createClient } from "@/lib/supabase/server";
+import { isCategory, tiersFromAttendance } from "@/lib/tiers";
 
 /** Resolves for admins; everyone else gets a 404 so the area stays hidden. */
 export async function requireAdmin() {
@@ -30,9 +31,31 @@ export async function getAdminOverview() {
   const upcoming = withCounts.filter(
     (event) => new Date(event.starts_at).getTime() > now,
   );
-  const past = withCounts
+  const pastEvents = withCounts
     .filter((event) => new Date(event.starts_at).getTime() <= now)
     .reverse();
+
+  const { data: confirmed } = pastEvents.length
+    ? await supabase
+        .from("event_attendees")
+        .select("event_id")
+        .in(
+          "event_id",
+          pastEvents.map((event) => event.id),
+        )
+        .not("attended_at", "is", null)
+    : { data: [] };
+  const confirmedByEvent = new Map<string, number>();
+  for (const row of confirmed ?? []) {
+    confirmedByEvent.set(
+      row.event_id,
+      (confirmedByEvent.get(row.event_id) ?? 0) + 1,
+    );
+  }
+  const past = pastEvents.map((event) => ({
+    ...event,
+    confirmedCount: confirmedByEvent.get(event.id) ?? 0,
+  }));
 
   return {
     upcoming,
@@ -56,7 +79,38 @@ export async function getAdminEvent(id: string) {
   if (error) throw error;
   if (attendeeError) throw attendeeError;
   if (!event) notFound();
-  return { event, attendees: attendees ?? [] };
+
+  const people = attendees ?? [];
+  const tiers: Record<string, string> = {};
+  if (isCategory(event.category) && people.length > 0) {
+    const { data: history } = await supabase
+      .from("event_attendees")
+      .select("user_id, attended_at, events (category)")
+      .in(
+        "user_id",
+        people.map((person) => person.user_id),
+      )
+      .not("attended_at", "is", null);
+    const byUser = new Map<
+      string,
+      { category: string | null; attendedAt: string | null }[]
+    >();
+    for (const row of history ?? []) {
+      if (!row.events) continue;
+      byUser.set(row.user_id, [
+        ...(byUser.get(row.user_id) ?? []),
+        { category: row.events.category, attendedAt: row.attended_at },
+      ]);
+    }
+    for (const person of people) {
+      const tier = tiersFromAttendance(byUser.get(person.user_id) ?? []).find(
+        (item) => item.category.key === event.category,
+      );
+      if (tier) tiers[person.user_id] = `Tier ${tier.level} · ${tier.name}`;
+    }
+  }
+
+  return { event, attendees: people, tiers };
 }
 
 export type AdminAttendee = Awaited<

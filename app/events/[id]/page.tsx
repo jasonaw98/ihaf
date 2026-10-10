@@ -14,6 +14,7 @@ import {
   hasStarted,
   spotsLeft,
 } from "@/lib/events";
+import { categoryInfo } from "@/lib/tiers";
 
 export async function generateMetadata({
   params,
@@ -40,6 +41,7 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
 
   const left = spotsLeft(event);
   const started = hasStarted(event);
+  const category = categoryInfo(event.category);
 
   return (
     <>
@@ -79,9 +81,23 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
             <article>
               <div className="flex items-start gap-5">
                 <DateBlock value={event.starts_at} className="hidden sm:grid" />
-                <h1 className="font-heading text-4xl leading-tight tracking-tight text-balance sm:text-5xl">
-                  {event.title}
-                </h1>
+                <div>
+                  {category ? (
+                    <span
+                      className={`mb-3 inline-block rounded-full px-3 py-1 text-xs font-semibold tracking-[0.08em] ${category.tone}`}
+                    >
+                      {category.title}
+                    </span>
+                  ) : null}
+                  <h1 className="font-heading text-4xl leading-tight tracking-tight text-balance sm:text-5xl">
+                    {event.title}
+                  </h1>
+                  {category ? (
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Counts towards your {category.label} tier.
+                    </p>
+                  ) : null}
+                </div>
               </div>
               {event.description ? (
                 <div className="mt-8 space-y-4 text-lg leading-relaxed text-pretty text-muted-foreground">

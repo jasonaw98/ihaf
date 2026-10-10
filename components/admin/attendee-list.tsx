@@ -1,11 +1,15 @@
 "use client";
 
 import { cn } from "cn";
-import { Check, Copy, Phone, UserX } from "lucide-react";
+import { Check, CheckCheck, Copy, Phone, UserX } from "lucide-react";
 import { useState, useTransition } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { removeAttendee, setAttendance } from "@/lib/actions/admin";
+import {
+  markAllAttended,
+  removeAttendee,
+  setAttendance,
+} from "@/lib/actions/admin";
 import type { AdminAttendee } from "@/lib/admin";
 import { formatPhone, whatsappLink } from "@/lib/phone";
 
@@ -20,10 +24,12 @@ const rsvpFormat = new Intl.DateTimeFormat("en-MY", {
 export function AttendeeList({
   eventId,
   attendees,
+  tiers,
   started,
 }: {
   eventId: string;
   attendees: AdminAttendee[];
+  tiers: Record<string, string>;
   started: boolean;
 }) {
   const [pendingId, setPendingId] = useState<string | null>(null);
@@ -89,6 +95,30 @@ export function AttendeeList({
           )}
         </div>
       </div>
+      {started ? (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-butter/40 px-4 py-3 text-sm text-ink">
+          <p className="max-w-sm">
+            {attendedCount === attendees.length
+              ? "Everyone’s attendance is confirmed. It now counts towards their tiers."
+              : "Confirm who showed up. Only confirmed attendance counts towards members’ tiers."}
+          </p>
+          {attendedCount < attendees.length ? (
+            <Button
+              size="sm"
+              className="rounded-full"
+              disabled={pendingId !== null}
+              onClick={() => run("all", () => markAllAttended(eventId))}
+            >
+              <CheckCheck data-icon="inline-start" />
+              {pendingId === "all" ? "Saving…" : "Mark everyone attended"}
+            </Button>
+          ) : null}
+        </div>
+      ) : (
+        <p className="mt-4 text-sm text-muted-foreground">
+          You can confirm attendance once the event starts.
+        </p>
+      )}
       {error ? (
         <p role="alert" className="mt-3 text-sm text-destructive">
           {error}
@@ -98,7 +128,9 @@ export function AttendeeList({
         {attendees.map((person) => {
           const name =
             person.full_name || person.username || person.email || "Unnamed";
-          const busy = pendingId === person.attendee_id;
+          const busy =
+            pendingId === person.attendee_id ||
+            (pendingId === "all" && !person.attended_at);
           return (
             <li
               key={person.attendee_id}
@@ -121,6 +153,11 @@ export function AttendeeList({
                   {person.username ? (
                     <span className="ml-2 text-sm font-normal text-muted-foreground">
                       @{person.username}
+                    </span>
+                  ) : null}
+                  {tiers[person.user_id] ? (
+                    <span className="ml-2 rounded-full bg-butter px-2 py-0.5 text-xs font-semibold text-ink">
+                      {tiers[person.user_id]}
                     </span>
                   ) : null}
                 </p>

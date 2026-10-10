@@ -9,7 +9,7 @@ export type EventSummary = EventRow & {
 };
 
 export const eventColumns =
-  "id, title, description, cover_image_url, location, starts_at, ends_at, capacity, created_at, updated_at";
+  "id, title, description, category, cover_image_url, location, starts_at, ends_at, capacity, created_at, updated_at";
 
 export async function getCurrentUser() {
   const supabase = await createClient();
@@ -100,14 +100,24 @@ export async function getMyEvents(userId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("event_attendees")
-    .select(`events (${eventColumns})`)
+    .select(`attended_at, events (${eventColumns})`)
     .eq("user_id", userId);
   if (error) throw error;
-  const events = (data ?? [])
+  const rows = data ?? [];
+  const attendedAt = new Map(
+    rows.flatMap((row) =>
+      row.events ? [[row.events.id, row.attended_at]] : [],
+    ),
+  );
+  const events = rows
     .map((row) => row.events)
     .filter((event): event is EventRow => event !== null)
     .sort((a, b) => a.starts_at.localeCompare(b.starts_at));
-  return withAttendance(events, userId);
+  const summaries = await withAttendance(events, userId);
+  return summaries.map((event) => ({
+    ...event,
+    attendedAt: attendedAt.get(event.id) ?? null,
+  }));
 }
 
 export async function hasPhone(userId: string) {

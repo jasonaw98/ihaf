@@ -21,7 +21,7 @@ export default async function ManageEventPage({
 }: PageProps<"/admin/events/[id]">) {
   const { id } = await params;
   const { created } = await searchParams;
-  const { event, attendees } = await getAdminEvent(id);
+  const { event, attendees, tiers } = await getAdminEvent(id);
   const started = hasStarted(event);
 
   return (
@@ -60,6 +60,7 @@ export default async function ManageEventPage({
             <AttendeeList
               eventId={event.id}
               attendees={attendees}
+              tiers={tiers}
               started={started}
             />
           </div>
@@ -85,6 +86,7 @@ export default async function ManageEventPage({
               }
               values={{
                 title: event.title,
+                category: event.category ?? "",
                 description: event.description ?? "",
                 location: event.location ?? "",
                 starts_at: toLocalInput(event.starts_at),

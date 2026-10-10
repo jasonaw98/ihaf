@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { formatTimeRange, TIME_ZONE } from "@/lib/dates";
 import { type EventSummary, hasStarted, spotsLeft } from "@/lib/events";
+import { categoryInfo } from "@/lib/tiers";
 
 const dayNumber = new Intl.DateTimeFormat("en-MY", {
   timeZone: TIME_ZONE,
@@ -46,9 +47,16 @@ export function DateBlock({
   );
 }
 
-export function EventCard({ event }: { event: EventSummary }) {
+export function EventCard({
+  event,
+  attendance,
+}: {
+  event: EventSummary;
+  attendance?: "confirmed" | "pending";
+}) {
   const started = hasStarted(event);
   const left = started ? null : spotsLeft(event);
+  const category = categoryInfo(event.category);
 
   return (
     <Link
@@ -79,11 +87,26 @@ export function EventCard({ event }: { event: EventSummary }) {
             {event.attendeeCount} going
           </span>
         </div>
-        {event.isGoing || left !== null ? (
+        {event.isGoing || left !== null || category ? (
           <div className="mt-4 flex flex-wrap gap-2">
+            {category ? (
+              <Badge className={category.tone}>{category.title}</Badge>
+            ) : null}
             {event.isGoing ? (
-              <Badge className="bg-sage text-ink">
-                {started ? "You went" : "You’re going"}
+              <Badge
+                className={
+                  attendance === "pending"
+                    ? "bg-muted text-muted-foreground"
+                    : "bg-sage text-ink"
+                }
+              >
+                {!started
+                  ? "You’re going"
+                  : attendance === "confirmed"
+                    ? "Attendance confirmed"
+                    : attendance === "pending"
+                      ? "Awaiting host check-in"
+                      : "You went"}
               </Badge>
             ) : null}
             {left !== null && !event.isGoing ? (

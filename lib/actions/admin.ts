@@ -4,9 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { fromLocalInput } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
+import { isCategory } from "@/lib/tiers";
 
 export type EventField =
   | "title"
+  | "category"
   | "description"
   | "location"
   | "starts_at"
@@ -53,6 +55,7 @@ export async function saveEvent(
     return { status: "error", message: "Unknown event." };
 
   const title = text(formData, "title");
+  const category = text(formData, "category");
   const description = text(formData, "description");
   const location = text(formData, "location");
   const coverImageUrl = text(formData, "cover_image_url");
@@ -64,6 +67,7 @@ export async function saveEvent(
   if (!title) fieldErrors.title = "Give the event a name.";
   else if (title.length > 120)
     fieldErrors.title = "Keep it under 120 characters.";
+  if (!isCategory(category)) fieldErrors.category = "Pick a category.";
   if (description && description.length > 4000) {
     fieldErrors.description = "Keep it under 4,000 characters.";
   }
@@ -107,6 +111,7 @@ export async function saveEvent(
 
   const values = {
     title,
+    category,
     description,
     location,
     starts_at: startsAt,
@@ -155,15 +160,40 @@ export async function setAttendance(
   attended: boolean,
 ) {
   const supabase = await adminClient();
-  if (!supabase || !UUID_PATTERN.test(attendeeId))
+  if (
+    !supabase ||
+    !UUID_PATTERN.test(attendeeId) ||
+    !UUID_PATTERN.test(eventId)
+  )
     return { error: "Not allowed." };
   const { error } = await supabase
     .from("event_attendees")
     .update({ attended_at: attended ? new Date().toISOString() : null })
-    .eq("id", attendeeId);
-  if (error) return { error: "Couldn’t update attendance." };
-  revalidatePath(`/admin/events/${eventId}`);
+    .eq("id", attendeeId)
+    .eq("event_id", eventId);
+  if (error) return { error: attendanceError(error.code) };
+  revalidateEvents(eventId);
   return {};
+}
+
+export async function markAllAttended(eventId: string) {
+  const supabase = await adminClient();
+  if (!supabase || !UUID_PATTERN.test(eventId))
+    return { error: "Not allowed." };
+  const { error } = await supabase
+    .from("event_attendees")
+    .update({ attended_at: new Date().toISOString() })
+    .eq("event_id", eventId)
+    .is("attended_at", null);
+  if (error) return { error: attendanceError(error.code) };
+  revalidateEvents(eventId);
+  return {};
+}
+
+function attendanceError(code: string | undefined) {
+  return code === "22023"
+    ? "Attendance can be confirmed once the event has started."
+    : "Couldn’t update attendance.";
 }
 
 export async function removeAttendee(attendeeId: string, eventId: string) {

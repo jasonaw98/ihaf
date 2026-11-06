@@ -58,34 +58,6 @@ export const gatherings = [
 
 export type CategoryKey = (typeof gatherings)[number]["key"];
 
-/**
- * Tier ladders per category. `from` is how many past events in that
- * category a member needs to reach the tier. The first tier must start at 0.
- */
-export const tierPlans: Record<
-  CategoryKey,
-  readonly { name: string; from: number }[]
-> = {
-  sport: [
-    { name: "Rookie", from: 0 },
-    { name: "Teammate", from: 3 },
-    { name: "Captain", from: 8 },
-    { name: "MVP", from: 15 },
-  ],
-  drinks: [
-    { name: "First Round", from: 0 },
-    { name: "Regular", from: 3 },
-    { name: "Bar Buddy", from: 8 },
-    { name: "Toastmaster", from: 15 },
-  ],
-  play: [
-    { name: "Newbie", from: 0 },
-    { name: "Player", from: 3 },
-    { name: "Game Master", from: 8 },
-    { name: "Grandmaster", from: 15 },
-  ],
-};
-
 export const reasons = [
   {
     title: "There’s a host",

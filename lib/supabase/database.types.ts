@@ -15,6 +15,7 @@ export type Database = {
       event_attendees: {
         Row: {
           attended_at: string | null;
+          brought_by: string | null;
           created_at: string | null;
           event_id: string;
           id: string;
@@ -22,6 +23,7 @@ export type Database = {
         };
         Insert: {
           attended_at?: string | null;
+          brought_by?: string | null;
           created_at?: string | null;
           event_id: string;
           id?: string;
@@ -29,6 +31,7 @@ export type Database = {
         };
         Update: {
           attended_at?: string | null;
+          brought_by?: string | null;
           created_at?: string | null;
           event_id?: string;
           id?: string;
@@ -153,7 +156,12 @@ export type Database = {
           location: string | null;
           rsvped_at: string | null;
           attended_at: string | null;
+          brought_by: string | null;
         }[];
+      };
+      friend_counts: {
+        Args: { member: string };
+        Returns: { category: string; friend_count: number }[];
       };
       event_attendee_counts: {
         Args: { event_ids: string[] };

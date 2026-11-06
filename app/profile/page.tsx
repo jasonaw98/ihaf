@@ -11,11 +11,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { signOut } from "@/lib/actions/auth";
 import { dayKey } from "@/lib/dates";
-import { getMyEvents, hasStarted } from "@/lib/events";
+import { getMyTiers, hasStarted } from "@/lib/events";
 import { formatPhone } from "@/lib/phone";
 import { createClient } from "@/lib/supabase/server";
-import { tiersFromAttendance } from "@/lib/tiers";
-
 export const metadata: Metadata = {
   title: "Your profile — IHAF",
   robots: { index: false },
@@ -44,7 +42,7 @@ export default async function ProfilePage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/profile");
 
-  const [{ data: profile }, myEvents] = await Promise.all([
+  const [{ data: profile }, { events: myEvents, tiers }] = await Promise.all([
     supabase
       .from("profiles")
       .select(
@@ -52,7 +50,7 @@ export default async function ProfilePage() {
       )
       .eq("id", user.id)
       .maybeSingle(),
-    getMyEvents(user.id),
+    getMyTiers(user.id),
   ]);
 
   const name = profile?.full_name ?? user.email?.split("@")[0] ?? "Friend";
@@ -105,11 +103,11 @@ export default async function ProfilePage() {
                 Your tiers
               </h2>
               <p className="text-sm text-muted-foreground">
-                Each event counts once your host confirms you were there.
+                Confirmed events and new friends you bring level you up.
               </p>
             </div>
             <div className="mt-5">
-              <TierCards tiers={tiersFromAttendance(myEvents)} />
+              <TierCards tiers={tiers} />
             </div>
           </section>
 

@@ -82,15 +82,22 @@ export async function getAdminEvent(id: string) {
 
   const people = attendees ?? [];
   const tiers: Record<string, string> = {};
-  if (isCategory(event.category) && people.length > 0) {
-    const { data: history } = await supabase
-      .from("event_attendees")
-      .select("user_id, attended_at, events (category)")
-      .in(
-        "user_id",
-        people.map((person) => person.user_id),
-      )
-      .not("attended_at", "is", null);
+  const category = event.category;
+  if (isCategory(category) && people.length > 0) {
+    const userIds = people.map((person) => person.user_id);
+    const [{ data: history }, { data: referrals }] = await Promise.all([
+      supabase
+        .from("event_attendees")
+        .select("user_id, attended_at, events (category)")
+        .in("user_id", userIds)
+        .not("attended_at", "is", null),
+      supabase
+        .from("event_attendees")
+        .select("user_id, brought_by, events (category)")
+        .in("brought_by", userIds)
+        .not("attended_at", "is", null),
+    ]);
+
     const byUser = new Map<
       string,
       { category: string | null; attendedAt: string | null }[]
@@ -102,11 +109,22 @@ export async function getAdminEvent(id: string) {
         { category: row.events.category, attendedAt: row.attended_at },
       ]);
     }
+
+    const friendsByUser = new Map<string, Set<string>>();
+    for (const row of referrals ?? []) {
+      if (!row.brought_by || row.events?.category !== category) continue;
+      const set = friendsByUser.get(row.brought_by) ?? new Set<string>();
+      set.add(row.user_id);
+      friendsByUser.set(row.brought_by, set);
+    }
+
     for (const person of people) {
-      const tier = tiersFromAttendance(byUser.get(person.user_id) ?? []).find(
-        (item) => item.category.key === event.category,
-      );
-      if (tier) tiers[person.user_id] = `Tier ${tier.level} · ${tier.name}`;
+      const tier = tiersFromAttendance(byUser.get(person.user_id) ?? [], {
+        [category]: friendsByUser.get(person.user_id)?.size ?? 0,
+      }).find((item) => item.category.key === category);
+      if (tier) {
+        tiers[person.user_id] = `${tier.tier.code} · ${tier.tier.title}`;
+      }
     }
   }
 

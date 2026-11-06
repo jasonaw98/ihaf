@@ -1,4 +1,6 @@
+import { ArrowRight } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { Reveal } from "@/components/reveal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { gatherings } from "@/lib/content";
@@ -29,27 +31,36 @@ export function Gatherings() {
           {gatherings.map((item, index) => {
             return (
               <Reveal key={item.title} delay={index * 0.05} className="h-full">
-                <Card className="h-full rounded-lg bg-card transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_-28px_rgba(60,32,16,0.7)]">
-                  <CardContent>
-                    <div className="flex items-center justify-center">
-                      <Image
-                        src={item.image}
-                        alt={item.title}
-                        width={500}
-                        height={100}
-                        className="rounded-lg"
-                      />
-                    </div>
-                  </CardContent>
-                  <CardHeader className="flex flex-col items-center justify-center">
-                    <CardTitle className="font-heading text-2xl text-center">
-                      {item.title}
-                      <p className="text-sm leading-relaxed text-muted-foreground">
-                        {item.body}
-                      </p>
-                    </CardTitle>
-                  </CardHeader>
-                </Card>
+                <Link
+                  href={`/gatherings/${item.key}`}
+                  className="group block h-full rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                >
+                  <Card className="h-full rounded-lg bg-card transition duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_18px_40px_-28px_rgba(60,32,16,0.7)]">
+                    <CardContent>
+                      <div className="flex items-center justify-center">
+                        <Image
+                          src={item.image}
+                          alt={item.title}
+                          width={500}
+                          height={100}
+                          className="rounded-lg"
+                        />
+                      </div>
+                    </CardContent>
+                    <CardHeader className="flex flex-col items-center justify-center">
+                      <CardTitle className="font-heading text-2xl text-center">
+                        {item.title}
+                        <p className="text-sm leading-relaxed text-muted-foreground">
+                          {item.body}
+                        </p>
+                      </CardTitle>
+                      <span className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-primary">
+                        Tiers & perks
+                        <ArrowRight className="size-4 transition group-hover:translate-x-1" />
+                      </span>
+                    </CardHeader>
+                  </Card>
+                </Link>
               </Reveal>
             );
           })}

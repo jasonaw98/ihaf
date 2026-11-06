@@ -190,6 +190,47 @@ export async function markAllAttended(eventId: string) {
   return {};
 }
 
+export async function setBroughtBy(
+  attendeeId: string,
+  eventId: string,
+  broughtBy: string | null,
+) {
+  const supabase = await adminClient();
+  if (
+    !supabase ||
+    !UUID_PATTERN.test(attendeeId) ||
+    !UUID_PATTERN.test(eventId) ||
+    (broughtBy !== null && !UUID_PATTERN.test(broughtBy))
+  )
+    return { error: "Not allowed." };
+
+  if (broughtBy) {
+    const { data: host } = await supabase
+      .from("event_attendees")
+      .select("id")
+      .eq("event_id", eventId)
+      .eq("user_id", broughtBy)
+      .maybeSingle();
+    if (!host) return { error: "Pick someone who’s at this event." };
+  }
+
+  const { error } = await supabase
+    .from("event_attendees")
+    .update({ brought_by: broughtBy })
+    .eq("id", attendeeId)
+    .eq("event_id", eventId);
+  if (error) {
+    return {
+      error:
+        error.code === "23514"
+          ? "Someone can’t bring themselves."
+          : "Couldn’t save who brought them.",
+    };
+  }
+  revalidateEvents(eventId);
+  return {};
+}
+
 function attendanceError(code: string | undefined) {
   return code === "22023"
     ? "Attendance can be confirmed once the event has started."

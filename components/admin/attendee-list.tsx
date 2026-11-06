@@ -9,6 +9,7 @@ import {
   markAllAttended,
   removeAttendee,
   setAttendance,
+  setBroughtBy,
 } from "@/lib/actions/admin";
 import type { AdminAttendee } from "@/lib/admin";
 import { formatPhone, whatsappLink } from "@/lib/phone";
@@ -100,7 +101,7 @@ export function AttendeeList({
           <p className="max-w-sm">
             {attendedCount === attendees.length
               ? "Everyone’s attendance is confirmed. It now counts towards their tiers."
-              : "Confirm who showed up. Only confirmed attendance counts towards members’ tiers."}
+              : "Confirm who showed up, and set “Brought by” for newcomers. Only confirmed attendance counts towards tiers."}
           </p>
           {attendedCount < attendees.length ? (
             <Button
@@ -191,6 +192,37 @@ export function AttendeeList({
                   <p className="text-xs text-muted-foreground">
                     RSVP’d {rsvpFormat.format(new Date(person.rsvped_at))}
                   </p>
+                ) : null}
+                {attendees.length > 1 ? (
+                  <label className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                    Brought by
+                    <select
+                      value={person.brought_by ?? ""}
+                      disabled={busy}
+                      onChange={(event) =>
+                        run(person.attendee_id, () =>
+                          setBroughtBy(
+                            person.attendee_id,
+                            eventId,
+                            event.target.value || null,
+                          ),
+                        )
+                      }
+                      className="h-7 max-w-48 rounded-full border border-input bg-card px-2 text-xs text-foreground"
+                    >
+                      <option value="">No one (came on their own)</option>
+                      {attendees
+                        .filter((other) => other.user_id !== person.user_id)
+                        .map((other) => (
+                          <option key={other.user_id} value={other.user_id}>
+                            {other.full_name ||
+                              other.username ||
+                              other.email ||
+                              "Unnamed"}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
                 ) : null}
               </div>
               <div className="flex items-center gap-1.5">

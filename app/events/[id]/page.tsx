@@ -94,7 +94,14 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
                   </h1>
                   {category ? (
                     <p className="mt-2 text-sm text-muted-foreground">
-                      Counts towards your {category.label} tier.
+                      Counts towards your{" "}
+                      <Link
+                        href={`/gatherings/${category.key}`}
+                        className="font-medium text-foreground underline underline-offset-4"
+                      >
+                        {category.label} tier
+                      </Link>
+                      .
                     </p>
                   ) : null}
                 </div>

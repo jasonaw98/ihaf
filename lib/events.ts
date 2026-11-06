@@ -1,5 +1,10 @@
 import type { Tables } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
+import {
+  type FriendCounts,
+  isCategory,
+  tiersFromAttendance,
+} from "@/lib/tiers";
 
 export type EventRow = Tables<"events">;
 
@@ -54,12 +59,15 @@ export async function withAttendance(
 export async function getUpcomingEvents(
   userId: string | undefined,
   limit = 12,
+  category?: string,
 ) {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("events")
     .select(eventColumns)
-    .gte("starts_at", new Date().toISOString())
+    .gte("starts_at", new Date().toISOString());
+  if (category) query = query.eq("category", category);
+  const { data, error } = await query
     .order("starts_at", { ascending: true })
     .limit(limit);
   if (error) throw error;
@@ -118,6 +126,25 @@ export async function getMyEvents(userId: string) {
     ...event,
     attendedAt: attendedAt.get(event.id) ?? null,
   }));
+}
+
+export async function getFriendCounts(userId: string): Promise<FriendCounts> {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("friend_counts", { member: userId });
+  const counts: FriendCounts = {};
+  for (const row of data ?? []) {
+    if (isCategory(row.category))
+      counts[row.category] = Number(row.friend_count);
+  }
+  return counts;
+}
+
+export async function getMyTiers(userId: string) {
+  const [events, friends] = await Promise.all([
+    getMyEvents(userId),
+    getFriendCounts(userId),
+  ]);
+  return { events, tiers: tiersFromAttendance(events, friends) };
 }
 
 export async function hasPhone(userId: string) {

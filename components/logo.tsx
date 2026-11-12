@@ -1,4 +1,5 @@
 import { cn } from "cn";
+import Image from "next/image";
 
 export function Mark({ className }: { className?: string }) {
   return (
@@ -24,7 +25,16 @@ export function Mark({ className }: { className?: string }) {
 export function Logo({ className }: { className?: string }) {
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
-      <Mark />
+      {/* <Mark /> */}
+      <span className="flex items-end justify-end h-full pt-2">
+        <Image
+          src="/logo.png"
+          alt="IHAF"
+          width={42}
+          height={36}
+          className="rounded"
+        />
+      </span>
       <span className="leading-none">
         <span className="block font-heading text-lg tracking-tight">IHAF</span>
         <span className="mt-0.5 block text-[0.68rem] tracking-wide text-muted-foreground">

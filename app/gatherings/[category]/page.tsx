@@ -1,5 +1,5 @@
 import { cn } from "cn";
-import { ArrowRight, CalendarHeart } from "lucide-react";
+import { ArrowRight, CalendarHeart, Lock } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -23,6 +23,7 @@ import { categoryInfo, isCategory, nextStepText } from "@/lib/tiers";
 
 export const dynamicParams = false;
 
+const [firstPlusBenefit, ...lockedPlusBenefits] = ihafPlusBenefits;
 const basePlusRate = ihafPlusPlans[0].perMonth;
 const bestPlusPlan = ihafPlusPlans.reduce((best, plan) =>
   plan.perMonth < best.perMonth ? plan : best,
@@ -319,23 +320,52 @@ export default async function CategoryPage({
                         Reach {plusTier.code} and you can apply for IHAF+, our
                         optional membership for regulars who want even more.
                       </p>
-                      <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-                        {ihafPlusBenefits.map((benefit) => (
-                          <li
-                            key={benefit.title}
-                            className="flex gap-3 rounded-2xl bg-background/5 p-4 ring-1 ring-background/10"
+                      <ul className="mt-6 grid gap-3">
+                        <li className="flex gap-3 rounded-2xl bg-background/5 p-4 ring-1 ring-background/10">
+                          <span aria-hidden="true">
+                            {firstPlusBenefit.emoji}
+                          </span>
+                          <span>
+                            <span className="block font-medium">
+                              {firstPlusBenefit.title}
+                            </span>
+                            <span className="mt-0.5 block text-sm text-background/65">
+                              {firstPlusBenefit.detail}
+                            </span>
+                          </span>
+                        </li>
+                        <li className="relative">
+                          <ul
+                            className="pointer-events-none grid select-none gap-3 blur-[6px] sm:grid-cols-2"
+                            aria-hidden="true"
                           >
-                            <span aria-hidden="true">{benefit.emoji}</span>
-                            <span>
-                              <span className="block font-medium">
-                                {benefit.title}
-                              </span>
-                              <span className="mt-0.5 block text-sm text-background/65">
-                                {benefit.detail}
+                            {lockedPlusBenefits.map((benefit) => (
+                              <li
+                                key={benefit.title}
+                                className="flex gap-3 rounded-2xl bg-background/5 p-4 ring-1 ring-background/10 last:odd:sm:col-span-2"
+                              >
+                                <span>{benefit.emoji}</span>
+                                <span>
+                                  <span className="block font-medium">
+                                    {benefit.title}
+                                  </span>
+                                  <span className="mt-0.5 block text-sm text-background/65">
+                                    {benefit.detail}
+                                  </span>
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                          <div className="absolute inset-0 grid place-items-center">
+                            <span className="grid size-12 place-items-center rounded-full bg-background text-foreground shadow-lg ring-4 ring-background/20">
+                              <Lock className="size-5" aria-hidden="true" />
+                              <span className="sr-only">
+                                {lockedPlusBenefits.length} more IHAF+ perks,
+                                unlocked when you join
                               </span>
                             </span>
-                          </li>
-                        ))}
+                          </div>
+                        </li>
                       </ul>
                     </div>
                     <ul className="grid content-center gap-3">
